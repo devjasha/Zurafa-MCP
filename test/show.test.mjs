@@ -56,6 +56,15 @@ test("renders TeX to SVG", async (t) => {
   assert.match(svg, /data-mml-node="msup"/);
 });
 
+test("renders AMS math and rejects bad TeX", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "zurafa-preview-test-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const output = join(directory, "ams.svg");
+  await renderMath("\\operatorname{ReLU}(z)=\\begin{cases}0, & z\\le 0\\\\ z, & z>0\\end{cases}\\qquad\\begin{aligned}a&=0\\end{aligned}", output);
+  assert.doesNotMatch(await readFile(output, "utf8"), /merror/);
+  await assert.rejects(renderMath("\\nosuchmacro", output), /TeX error/);
+});
+
 test("writes HTML with its helper scripts beside it", async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "zurafa-preview-test-"));
   t.after(() => rm(directory, { recursive: true, force: true }));

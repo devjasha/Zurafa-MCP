@@ -13,6 +13,13 @@ import { TeX } from "@mathjax/src/js/input/tex.js";
 import { SVG } from "@mathjax/src/js/output/svg.js";
 import { liteAdaptor } from "@mathjax/src/js/adaptors/liteAdaptor.js";
 import { RegisterHTMLHandler } from "@mathjax/src/js/handlers/html.js";
+import "@mathjax/src/js/input/tex/base/BaseConfiguration.js";
+import "@mathjax/src/js/input/tex/ams/AmsConfiguration.js";
+import "@mathjax/src/js/input/tex/newcommand/NewcommandConfiguration.js";
+import "@mathjax/src/js/input/tex/boldsymbol/BoldsymbolConfiguration.js";
+import "@mathjax/src/js/input/tex/mathtools/MathtoolsConfiguration.js";
+import "@mathjax/src/js/input/tex/color/ColorConfiguration.js";
+import "@mathjax/src/js/input/tex/cancel/CancelConfiguration.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -74,7 +81,11 @@ export async function renderMath(source, output) {
   const adaptor = liteAdaptor();
   RegisterHTMLHandler(adaptor);
   const html = mathjax.document("", {
-    InputJax: new TeX(),
+    InputJax: new TeX({
+      packages: ["base", "ams", "newcommand", "boldsymbol", "mathtools", "color", "cancel"],
+      // Fail loudly; MathJax otherwise draws the error as a filled box that looks like a blank preview.
+      formatError: (_jax, error) => { throw new Error(`TeX error: ${error.message}`); },
+    }),
     OutputJax: new SVG({ fontCache: "local" }),
   });
   const node = html.convert(source, { display: true });
