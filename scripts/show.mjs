@@ -21,6 +21,9 @@ import "@mathjax/src/js/input/tex/mathtools/MathtoolsConfiguration.js";
 import "@mathjax/src/js/input/tex/color/ColorConfiguration.js";
 import "@mathjax/src/js/input/tex/cancel/CancelConfiguration.js";
 
+// MathJax loads glyphs outside basic Latin (e.g. ä) lazily from font files.
+mathjax.asyncLoad = (name) => import(name);
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function usage() {
@@ -80,18 +83,21 @@ function outputFor(kind, source, requested) {
 export async function renderMath(source, output) {
   const adaptor = liteAdaptor();
   RegisterHTMLHandler(adaptor);
+  const svgJax = new SVG({ fontCache: "local" });
   const html = mathjax.document("", {
     InputJax: new TeX({
       packages: ["base", "ams", "newcommand", "boldsymbol", "mathtools", "color", "cancel"],
       // Fail loudly; MathJax otherwise draws the error as a filled box that looks like a blank preview.
       formatError: (_jax, error) => { throw new Error(`TeX error: ${error.message}`); },
     }),
-    OutputJax: new SVG({ fontCache: "local" }),
+    OutputJax: svgJax,
   });
-  const node = html.convert(source, { display: true });
+  const node = await html.convertPromise(source, { display: true });
   let svg = adaptor.innerHTML(node);
   if (!/<svg[^>]+xmlns=/.test(svg)) svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ');
   svg = svg.replace('style="', 'style="background-color:white;color:#111;');
+  // Table rules and similar strokes get their width from MathJax's stylesheet, which a standalone file lacks.
+  svg = svg.replace(/(<svg[^>]*>)/, `$1<style>${adaptor.textContent(svgJax.styleSheet(html))}</style>`);
   await mkdir(dirname(output), { recursive: true });
   await writeFile(output, `<?xml version="1.0" encoding="UTF-8"?>\n${svg}\n`);
 }

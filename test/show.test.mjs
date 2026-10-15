@@ -61,8 +61,11 @@ test("renders AMS math and rejects bad TeX", async (t) => {
   t.after(() => rm(directory, { recursive: true, force: true }));
   const output = join(directory, "ams.svg");
   await renderMath("\\operatorname{ReLU}(z)=\\begin{cases}0, & z\\le 0\\\\ z, & z>0\\end{cases}\\qquad\\begin{aligned}a&=0\\end{aligned}", output);
-  assert.doesNotMatch(await readFile(output, "utf8"), /merror/);
+  assert.doesNotMatch(await readFile(output, "utf8"), /<g data-mml-node="merror"/);
   await assert.rejects(renderMath("\\nosuchmacro", output), /TeX error/);
+  // Non-ASCII glyphs load their font data asynchronously.
+  await renderMath("\\text{unverändert}", output);
+  assert.match(await readFile(output, "utf8"), /line\[data-line\]/);
 });
 
 test("writes HTML with its helper scripts beside it", async (t) => {
