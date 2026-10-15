@@ -1,0 +1,8 @@
+{
+  "name": "zurafa-preview",
+  "version": "0.1.0",
+  "description": "Render math and Mermaid diagrams into Zurafa's Preview pane",
+  "author": {
+    "name": "Zurafa Preview contributors"
+  }
+}

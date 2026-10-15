@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "zurafa-preview-local",
+  "description": "Local Zurafa Preview integration for agent-generated math and diagrams.",
+  "owner": {
+    "name": "devjasha"
+  },
+  "plugins": [
+    {
+      "name": "zurafa-preview",
+      "description": "Render mathematical formulas and Mermaid diagrams in Zurafa Preview.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
